@@ -966,19 +966,7 @@
         <p class="comment-text">${text.replace(/</g,'&lt;')}</p>
       </div>`;
 
-    document.getElementById('comments-list').appendChild(item);
-    input.value = '';
 
-    requestAnimationFrame(() => {
-      item.style.opacity = '1';
-      item.style.transform = 'none';
-    });
-  }
-
-  // Enter to comment
-  document.getElementById('comment-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addComment();
-  });
 </script>
 </body>
 </html>
