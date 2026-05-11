@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -16,10 +16,21 @@
       --muted: #6b6458;
       --border: rgba(13,13,13,0.15);
       --col: 68ch;
+      --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    [data-theme="dark"] {
+      --ink: #f0ebe0;
+      --paper: #111010;
+      --paper-dark: #1c1b19;
+      --accent: #e8304a;
+      --accent-dim: #c8102e;
+      --muted: #9a9080;
+      --border: rgba(240,235,224,0.12);
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     html { scroll-behavior: smooth; }
 
     body {
@@ -29,6 +40,18 @@
       font-size: 18px;
       line-height: 1.7;
       overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ── PROGRESS BAR ── */
+    #progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 3px;
+      background: var(--accent);
+      width: 0%;
+      z-index: 9999;
+      transition: width 0.1s linear;
     }
 
     /* ── HEADER ── */
@@ -39,6 +62,7 @@
       top: 0;
       z-index: 100;
       background: var(--paper);
+      transition: background 0.3s, border-color 0.3s;
     }
 
     .header-top {
@@ -52,11 +76,58 @@
       letter-spacing: 0.05em;
       color: var(--muted);
       text-transform: uppercase;
+      flex-wrap: wrap;
+      gap: 0.4rem;
     }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    /* Dark mode toggle */
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      color: var(--ink);
+      transition: background 0.2s, border-color 0.2s;
+      border-radius: 2px;
+    }
+    .theme-toggle:hover { background: var(--ink); color: var(--paper); }
+
+    /* Font size controls */
+    .font-controls {
+      display: flex;
+      gap: 0.2rem;
+    }
+    .font-btn {
+      background: none;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+    .font-btn:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
     .masthead {
       text-align: center;
       padding: 1rem 0 0.8rem;
+      position: relative;
     }
 
     .masthead h1 {
@@ -67,9 +138,7 @@
       line-height: 1;
     }
 
-    .masthead h1 span {
-      color: var(--accent);
-    }
+    .masthead h1 span { color: var(--accent); }
 
     .masthead-tagline {
       font-family: 'IBM Plex Mono', monospace;
@@ -87,6 +156,7 @@
       border-top: 1px solid var(--border);
       padding: 0.5rem 0 0.4rem;
       flex-wrap: wrap;
+      overflow-x: auto;
     }
 
     nav a {
@@ -98,11 +168,16 @@
       text-decoration: none;
       padding: 0.2rem 1rem;
       border-right: 1px solid var(--border);
-      transition: color 0.2s;
+      transition: color 0.2s, background 0.2s;
+      white-space: nowrap;
     }
     nav a:first-child { border-left: 1px solid var(--border); }
     nav a:hover { color: var(--accent); }
-    nav a.active { color: var(--accent); font-weight: 500; }
+    nav a.active {
+      color: var(--paper);
+      background: var(--accent);
+      border-color: var(--accent);
+    }
 
     /* ── TICKER ── */
     .ticker-wrap {
@@ -111,10 +186,13 @@
       overflow: hidden;
       white-space: nowrap;
       padding: 0.35rem 0;
+      display: flex;
+      align-items: center;
     }
 
     .ticker-label {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
       background: var(--accent);
       color: #fff;
       font-family: 'IBM Plex Mono', monospace;
@@ -123,7 +201,14 @@
       letter-spacing: 0.1em;
       text-transform: uppercase;
       padding: 0 0.8rem;
+      height: 100%;
+      flex-shrink: 0;
       margin-right: 1rem;
+    }
+
+    .ticker-track {
+      overflow: hidden;
+      flex: 1;
     }
 
     .ticker-content {
@@ -131,8 +216,11 @@
       font-family: 'IBM Plex Mono', monospace;
       font-size: 0.7rem;
       letter-spacing: 0.03em;
-      animation: ticker 32s linear infinite;
+      animation: ticker 38s linear infinite;
+      will-change: transform;
     }
+
+    .ticker-wrap:hover .ticker-content { animation-play-state: paused; }
 
     @keyframes ticker {
       0%   { transform: translateX(100vw); }
@@ -141,17 +229,21 @@
 
     /* ── LAYOUT ── */
     main {
-      max-width: 1100px;
+      max-width: 1140px;
       margin: 0 auto;
       padding: 3rem 2rem 4rem;
       display: grid;
       grid-template-columns: 1fr 300px;
-      gap: 3rem;
+      gap: 3.5rem;
       align-items: start;
     }
 
     /* ── ARTICLE ── */
-    article { opacity: 0; transform: translateY(24px); transition: opacity 0.8s ease, transform 0.8s ease; }
+    article {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
     article.visible { opacity: 1; transform: none; }
 
     .article-category {
@@ -197,8 +289,8 @@
     }
 
     .author-avatar {
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
       background: var(--ink);
       display: flex;
@@ -209,6 +301,7 @@
       font-size: 0.85rem;
       font-weight: 700;
       flex-shrink: 0;
+      transition: background 0.3s, color 0.3s;
     }
 
     .meta-text {
@@ -228,25 +321,48 @@
       margin-left: auto;
       display: flex;
       gap: 0.5rem;
+      align-items: center;
     }
 
     .btn-icon {
       background: none;
       border: 1px solid var(--border);
       cursor: pointer;
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.85rem;
-      transition: background 0.2s, border-color 0.2s;
+      font-size: 0.9rem;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
       color: var(--ink);
     }
-    .btn-icon:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-    .btn-icon.liked { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn-icon:hover {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+      transform: scale(1.08);
+    }
+    .btn-icon.liked {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .btn-icon.saved {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--paper);
+    }
 
-    /* hero image */
+    /* ── LIKE COUNT ── */
+    .like-count {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      min-width: 1.2em;
+    }
+
+    /* ── HERO IMAGE ── */
     .hero-image {
       position: relative;
       width: 100%;
@@ -260,9 +376,12 @@
       object-fit: cover;
       display: block;
       filter: sepia(15%) contrast(1.05);
-      transition: filter 0.4s;
+      transition: filter 0.5s, transform 0.5s;
     }
-    .hero-image:hover img { filter: sepia(0%) contrast(1); }
+    .hero-image:hover img {
+      filter: sepia(0%) contrast(1.02);
+      transform: scale(1.01);
+    }
 
     .hero-caption {
       font-family: 'IBM Plex Mono', monospace;
@@ -273,15 +392,14 @@
       letter-spacing: 0.02em;
     }
 
-    /* body text */
-    .article-body p {
-      margin-bottom: 1.4rem;
-      font-size: 1.05rem;
-    }
+    /* ── BODY TEXT ── */
+    .article-body { font-size: var(--body-size, 1.05rem); }
+
+    .article-body p { margin-bottom: 1.4rem; line-height: 1.75; }
 
     .article-body p:first-child::first-letter {
       font-family: 'Playfair Display', serif;
-      font-size: 4rem;
+      font-size: 4.2rem;
       font-weight: 900;
       float: left;
       line-height: 0.75;
@@ -303,9 +421,9 @@
       border-top: 2px solid var(--ink);
       border-bottom: 2px solid var(--ink);
       margin: 2rem 0;
-      padding: 1.2rem 0;
+      padding: 1.2rem 0 1.2rem 2.5rem;
       font-family: 'Playfair Display', serif;
-      font-size: 1.35rem;
+      font-size: 1.3rem;
       font-style: italic;
       line-height: 1.4;
       color: var(--ink);
@@ -313,12 +431,12 @@
     }
 
     blockquote::before {
-      content: '"';
+      content: '\201C';
       font-size: 5rem;
       line-height: 0;
       position: absolute;
-      top: 2rem;
-      left: -0.1em;
+      top: 2.2rem;
+      left: -0.05em;
       color: var(--accent);
       font-family: 'Playfair Display', serif;
     }
@@ -334,11 +452,45 @@
       margin-top: 0.8rem;
     }
 
+    /* ── SHARE BAR ── */
+    .share-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 1.2rem 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin: 2rem 0 1rem;
+      flex-wrap: wrap;
+    }
+    .share-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .share-btn {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      padding: 0.3rem 0.8rem;
+      cursor: pointer;
+      background: none;
+      color: var(--ink);
+      transition: all 0.2s;
+    }
+    .share-btn:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+    /* ── TAGS ── */
     .tags {
       display: flex;
       flex-wrap: wrap;
       gap: 0.4rem;
-      margin-top: 2.5rem;
+      margin-top: 1.5rem;
       padding-top: 1.5rem;
       border-top: 1px solid var(--border);
     }
@@ -357,20 +509,14 @@
     }
     .tag:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
-    /* reading progress */
-    #progress-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 3px;
-      background: var(--accent);
-      width: 0%;
-      z-index: 9999;
-      transition: width 0.1s linear;
-    }
-
     /* ── SIDEBAR ── */
-    aside { display: flex; flex-direction: column; gap: 2rem; }
+    aside {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      position: sticky;
+      top: 140px;
+    }
 
     .sidebar-block {
       opacity: 0;
@@ -398,12 +544,12 @@
       padding: 0.8rem 0;
       border-bottom: 1px solid var(--border);
       cursor: pointer;
-      transition: opacity 0.2s;
+      transition: opacity 0.2s, transform 0.2s;
       text-decoration: none;
       color: inherit;
     }
     .related-item:last-child { border-bottom: none; }
-    .related-item:hover { opacity: 0.7; }
+    .related-item:hover { opacity: 0.7; transform: translateX(3px); }
 
     .related-num {
       font-family: 'Playfair Display', serif;
@@ -415,6 +561,7 @@
       width: 2rem;
       text-align: right;
       user-select: none;
+      transition: color 0.3s;
     }
 
     .related-title {
@@ -437,6 +584,7 @@
       background: var(--ink);
       color: var(--paper);
       padding: 1.5rem;
+      transition: background 0.3s;
     }
 
     .newsletter-box .sidebar-label {
@@ -465,7 +613,14 @@
       transition: border-color 0.2s;
     }
     .newsletter-input:focus { border-color: var(--accent); }
+    .newsletter-input.error { border-color: #ff6b6b; animation: shake 0.3s ease; }
     .newsletter-input::placeholder { color: rgba(244,240,232,0.4); }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
 
     .newsletter-btn {
       width: 100%;
@@ -478,9 +633,10 @@
       letter-spacing: 0.15em;
       text-transform: uppercase;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.2s, transform 0.15s;
     }
-    .newsletter-btn:hover { background: var(--accent-dim); }
+    .newsletter-btn:hover { background: var(--accent-dim); transform: translateY(-1px); }
+    .newsletter-btn:active { transform: translateY(0); }
 
     .newsletter-success {
       display: none;
@@ -504,7 +660,9 @@
       border: 1px solid var(--border);
       margin: -1px 0 0 -1px;
       text-align: center;
+      transition: background 0.2s;
     }
+    .stat-item:hover { background: var(--paper-dark); }
 
     .stat-value {
       font-family: 'Playfair Display', serif;
@@ -525,7 +683,7 @@
       margin-top: 0.3rem;
     }
 
-    /* comments */
+    /* ── COMMENTS ── */
     .comments-section {
       grid-column: 1 / -1;
       border-top: 3px double var(--ink);
@@ -549,6 +707,12 @@
       gap: 1rem;
       padding: 1rem 0;
       border-bottom: 1px solid var(--border);
+      animation: slideUp 0.4s ease forwards;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
     .comment-avatar {
@@ -562,7 +726,7 @@
       font-size: 0.85rem;
       font-weight: 700;
       flex-shrink: 0;
-      color: var(--paper);
+      color: #fff;
     }
 
     .comment-name {
@@ -582,8 +746,32 @@
     .comment-text {
       font-size: 0.92rem;
       margin-top: 0.3rem;
-      line-height: 1.5;
+      line-height: 1.55;
     }
+
+    /* comment reactions */
+    .comment-actions {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: 0.5rem;
+    }
+    .comment-react {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      padding: 0.1rem 0.3rem;
+      border-radius: 2px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .comment-react:hover { color: var(--accent); background: rgba(200,16,46,0.06); }
+    .comment-react.active { color: var(--accent); }
 
     .comment-form {
       margin-top: 1.5rem;
@@ -595,7 +783,7 @@
       flex: 1;
       background: transparent;
       border: 1px solid var(--border);
-      padding: 0.6rem 0.9rem;
+      padding: 0.7rem 0.9rem;
       font-family: 'Source Serif 4', serif;
       font-size: 0.9rem;
       color: var(--ink);
@@ -615,43 +803,95 @@
       letter-spacing: 0.12em;
       text-transform: uppercase;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.2s, transform 0.15s;
+      flex-shrink: 0;
     }
-    .comment-send:hover { background: var(--accent); }
+    .comment-send:hover { background: var(--accent); transform: translateY(-1px); }
+    .comment-send:active { transform: translateY(0); }
 
-    /* footer */
+    /* ── BACK TO TOP ── */
+    #back-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 40px;
+      height: 40px;
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s, background 0.2s;
+      z-index: 500;
+    }
+    #back-top.show { opacity: 1; transform: translateY(0); }
+    #back-top:hover { background: var(--accent); }
+
+    /* ── FOOTER ── */
     footer {
       background: var(--ink);
-      color: rgba(244,240,232,0.6);
+      color: rgba(244,240,232,0.5);
       text-align: center;
       padding: 1.5rem;
       font-family: 'IBM Plex Mono', monospace;
       font-size: 0.65rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
+      transition: background 0.3s;
     }
-
     footer span { color: var(--accent); }
 
-    /* responsive */
-    @media (max-width: 768px) {
-      main { grid-template-columns: 1fr; gap: 2rem; padding: 1.5rem 1rem 3rem; }
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        padding: 1.5rem 1rem 3rem;
+      }
+      aside {
+        position: static;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+      }
+      .newsletter-box { grid-column: 1 / -1; }
       .comments-section { grid-column: 1; }
-      .meta-actions { margin-left: 0; }
+      .meta-actions { margin-left: 0; width: 100%; }
+    }
+
+    @media (max-width: 580px) {
+      body { font-size: 16px; }
+      aside { grid-template-columns: 1fr; }
       .article-body p:first-child::first-letter { font-size: 3rem; }
+      .header-top span:nth-child(2) { display: none; }
+      .comment-form { flex-direction: column; }
+      .comment-send { padding: 0.7rem; }
+      #back-top { bottom: 1rem; right: 1rem; }
     }
   </style>
 </head>
 <body>
 
 <div id="progress-bar"></div>
+<button id="back-top" title="Voltar ao topo" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
 <!-- HEADER -->
 <header class="site-header">
   <div class="header-top">
     <span>Segunda-feira, 12 de Maio de 2025</span>
-    <span>São Paulo, Brasil</span>
-    <span>Edição Digital</span>
+    <span>São Paulo, Brasil · Edição Digital</span>
+    <div class="header-controls">
+      <div class="font-controls">
+        <button class="font-btn" onclick="changeFontSize(-1)" title="Diminuir fonte">A−</button>
+        <button class="font-btn" onclick="changeFontSize(1)" title="Aumentar fonte">A+</button>
+      </div>
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn" title="Alternar tema">☀</button>
+    </div>
   </div>
   <div class="masthead">
     <h1>NEXO<span>PRESS</span></h1>
@@ -671,9 +911,11 @@
 <!-- TICKER -->
 <div class="ticker-wrap">
   <span class="ticker-label">Urgente</span>
-  <span class="ticker-content">
-    Banco Central anuncia nova política de juros · Governo lança programa de investimento em infraestrutura · Copa do Mundo 2026: seleção convoca jogadores · Vacina contra dengue ampliada para todo o país · Startup brasileira levanta R$ 500 milhões em rodada · Chuvas no Sul: 12 municípios em estado de alerta
-  </span>
+  <div class="ticker-track">
+    <span class="ticker-content">
+      Banco Central anuncia nova política de juros &nbsp;·&nbsp; Governo lança programa de investimento em infraestrutura &nbsp;·&nbsp; Copa do Mundo 2026: seleção convoca jogadores &nbsp;·&nbsp; Vacina contra dengue ampliada para todo o país &nbsp;·&nbsp; Startup brasileira levanta R$ 500 milhões em rodada &nbsp;·&nbsp; Chuvas no Sul: 12 municípios em estado de alerta &nbsp;·&nbsp;
+    </span>
+  </div>
 </div>
 
 <!-- MAIN -->
@@ -695,13 +937,14 @@
       </div>
       <div class="meta-actions">
         <button class="btn-icon" id="like-btn" title="Curtir" onclick="toggleLike()">♥</button>
-        <button class="btn-icon" title="Salvar" onclick="toggleSave(this)">☆</button>
+        <span class="like-count" id="like-count">142</span>
+        <button class="btn-icon" id="save-btn" title="Salvar" onclick="toggleSave()">☆</button>
         <button class="btn-icon" title="Compartilhar" onclick="share()">↗</button>
       </div>
     </div>
 
     <div class="hero-image">
-      <img src="https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=900&q=80" alt="Redes neurais artificiais visualizadas em luz azul" />
+      <img src="https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=900&q=80" alt="Redes neurais artificiais visualizadas em luz azul" loading="lazy"/>
       <p class="hero-caption">Ilustração artística de uma rede neural artificial. Foto: Unsplash / Digital Art Studio</p>
     </div>
 
@@ -732,6 +975,14 @@
       <p>Para artistas e escritores, o sentimento é ambivalente. A poeta paulistana Camila Vaz, que recentemente publicou um livro em parceria com uma IA, descreve a experiência como "um espelho distorcido": útil para revelar padrões que ela mesma não percebia, mas incapaz de capturar o que ela chama de "a hesitação antes da palavra certa — esse momento de dúvida que é, na verdade, onde a poesia mora".</p>
 
       <p>A discussão está longe de uma conclusão. O que parece certo é que a linha entre ferramenta e colaborador está se tornando cada vez mais tênue — e que a resposta para "o que nos torna únicos" precisará ser encontrada não em oposição às máquinas, mas a partir do diálogo com elas.</p>
+    </div>
+
+    <div class="share-bar">
+      <span class="share-label">Compartilhar:</span>
+      <button class="share-btn" onclick="shareVia('twitter')">Twitter/X</button>
+      <button class="share-btn" onclick="shareVia('whatsapp')">WhatsApp</button>
+      <button class="share-btn" onclick="shareVia('linkedin')">LinkedIn</button>
+      <button class="share-btn" onclick="copyLink(this)">Copiar link</button>
     </div>
 
     <div class="tags">
@@ -818,32 +1069,44 @@
     <div id="comments-list">
       <div class="comment-item">
         <div class="comment-avatar" style="background:#2d5a3d">PL</div>
-        <div>
+        <div style="flex:1">
           <span class="comment-name">Pedro Lima</span>
           <span class="comment-time">há 2 horas</span>
           <p class="comment-text">Excelente reportagem. A questão da autoria é central e ainda está longe de ser resolvida. Precisa de regulamentação urgente.</p>
+          <div class="comment-actions">
+            <button class="comment-react" onclick="reactComment(this)">♥ <span>12</span></button>
+            <button class="comment-react" onclick="replyComment(this)">↩ Responder</button>
+          </div>
         </div>
       </div>
       <div class="comment-item">
         <div class="comment-avatar" style="background:#8a3a2a">JA</div>
-        <div>
+        <div style="flex:1">
           <span class="comment-name">Juliana Alves</span>
           <span class="comment-time">há 4 horas</span>
           <p class="comment-text">Como designer, sinto isso na pele. A IA é incrível para explorar variações, mas a direção criativa ainda precisa ser humana — pelo menos por enquanto.</p>
+          <div class="comment-actions">
+            <button class="comment-react" onclick="reactComment(this)">♥ <span>8</span></button>
+            <button class="comment-react" onclick="replyComment(this)">↩ Responder</button>
+          </div>
         </div>
       </div>
       <div class="comment-item">
         <div class="comment-avatar" style="background:#2a3a8a">RC</div>
-        <div>
+        <div style="flex:1">
           <span class="comment-name">Ricardo Castro</span>
           <span class="comment-time">há 6 horas</span>
           <p class="comment-text">Os 23% do estudo MIT/USP me impressionaram. Pensava que seria mais fácil distinguir. Isso muda a conversa sobre transparência e disclosure.</p>
+          <div class="comment-actions">
+            <button class="comment-react" onclick="reactComment(this)">♥ <span>5</span></button>
+            <button class="comment-react" onclick="replyComment(this)">↩ Responder</button>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="comment-form">
-      <input class="comment-input" id="comment-input" type="text" placeholder="Escreva um comentário…" />
+      <input class="comment-input" id="comment-input" type="text" placeholder="Escreva um comentário…" onkeydown="if(event.key==='Enter') addComment()" maxlength="500"/>
       <button class="comment-send" onclick="addComment()">Enviar</button>
     </div>
   </section>
@@ -854,39 +1117,43 @@
 </footer>
 
 <script>
-  // Progress bar
+  /* ── PROGRESS BAR ── */
   window.addEventListener('scroll', () => {
     const doc = document.documentElement;
     const scrollTop = doc.scrollTop || document.body.scrollTop;
     const scrollHeight = doc.scrollHeight - doc.clientHeight;
     const pct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
     document.getElementById('progress-bar').style.width = pct + '%';
+
+    // Back to top button
+    const btn = document.getElementById('back-top');
+    if (scrollTop > 400) btn.classList.add('show');
+    else btn.classList.remove('show');
   });
 
-  // Intersection Observer for fade-in
+  /* ── INTERSECTION OBSERVER ── */
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) {
         e.target.classList.add('visible');
-        // animate counters
         e.target.querySelectorAll('[data-target]').forEach(animateCounter);
+        observer.unobserve(e.target);
       }
     });
   }, { threshold: 0.1 });
 
   document.querySelectorAll('article, .sidebar-block, .comments-section').forEach(el => observer.observe(el));
 
-  // Sidebar stagger
   ['sb1','sb2','sb3'].forEach((id, i) => {
     const el = document.getElementById(id);
     if (el) el.style.transitionDelay = (i * 0.15) + 's';
   });
 
-  // Counter animation
+  /* ── COUNTER ANIMATION ── */
   function animateCounter(el) {
     const target = parseFloat(el.dataset.target);
     const isDecimal = String(target).includes('.');
-    const duration = 1200;
+    const duration = 1400;
     const start = performance.now();
     const update = (now) => {
       const progress = Math.min((now - start) / duration, 1);
@@ -898,75 +1165,137 @@
     requestAnimationFrame(update);
   }
 
-  // Like button
+  /* ── DARK MODE ── */
+  let isDark = false;
+  function toggleTheme() {
+    isDark = !isDark;
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    document.getElementById('theme-btn').textContent = isDark ? '☽' : '☀';
+  }
+
+  /* ── FONT SIZE ── */
+  let fontSize = 1.05;
+  function changeFontSize(dir) {
+    fontSize = Math.min(1.35, Math.max(0.85, fontSize + dir * 0.05));
+    document.querySelector('.article-body').style.setProperty('--body-size', fontSize + 'rem');
+    document.querySelector('.article-body').style.fontSize = fontSize + 'rem';
+  }
+
+  /* ── LIKE ── */
+  let liked = false;
+  let likeCount = 142;
   function toggleLike() {
+    liked = !liked;
+    likeCount += liked ? 1 : -1;
     const btn = document.getElementById('like-btn');
-    btn.classList.toggle('liked');
-    btn.textContent = btn.classList.contains('liked') ? '♥' : '♥';
+    btn.classList.toggle('liked', liked);
+    document.getElementById('like-count').textContent = likeCount;
   }
 
-  // Save button
-  function toggleSave(btn) {
-    btn.textContent = btn.textContent === '☆' ? '★' : '☆';
-    btn.style.background = btn.textContent === '★' ? 'var(--ink)' : '';
-    btn.style.color = btn.textContent === '★' ? 'var(--paper)' : '';
+  /* ── SAVE ── */
+  let saved = false;
+  function toggleSave() {
+    saved = !saved;
+    const btn = document.getElementById('save-btn');
+    btn.textContent = saved ? '★' : '☆';
+    btn.classList.toggle('saved', saved);
   }
 
-  // Share
+  /* ── SHARE ── */
   function share() {
     if (navigator.share) {
       navigator.share({ title: document.title, url: window.location.href });
     } else {
-      navigator.clipboard.writeText(window.location.href).then(() => {
-        const btn = document.querySelector('[title="Compartilhar"]');
-        const orig = btn.textContent;
-        btn.textContent = '✓';
-        setTimeout(() => btn.textContent = orig, 1500);
-      });
+      copyLink(document.querySelector('[title="Compartilhar"]'));
     }
   }
 
-  // Newsletter
+  function shareVia(platform) {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent(document.title);
+    const urls = {
+      twitter: `https://twitter.com/intent/tweet?url=${url}&text=${title}`,
+      whatsapp: `https://wa.me/?text=${title}%20${url}`,
+      linkedin: `https://www.linkedin.com/shareArticle?mini=true&url=${url}&title=${title}`
+    };
+    window.open(urls[platform], '_blank', 'noopener');
+  }
+
+  function copyLink(btn) {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copiado!';
+      setTimeout(() => btn.textContent = orig, 2000);
+    });
+  }
+
+  /* ── NEWSLETTER ── */
   function subscribeNewsletter() {
-    const email = document.getElementById('nl-email').value;
-    if (!email || !email.includes('@')) {
-      document.getElementById('nl-email').style.borderColor = 'var(--accent)';
+    const input = document.getElementById('nl-email');
+    const email = input.value.trim();
+    if (!email || !email.includes('@') || !email.includes('.')) {
+      input.classList.add('error');
+      setTimeout(() => input.classList.remove('error'), 600);
       return;
     }
-    document.getElementById('nl-email').style.display = 'none';
+    input.style.display = 'none';
     document.querySelector('.newsletter-btn').style.display = 'none';
     document.getElementById('nl-success').style.display = 'block';
   }
 
-  // Comments
-  const avatarColors = ['#2d5a3d','#8a3a2a','#2a3a8a','#6a2a6a','#3a5a8a','#7a5a2a'];
+  /* ── COMMENT REACTIONS ── */
+  function reactComment(btn) {
+    const isActive = btn.classList.toggle('active');
+    const countEl = btn.querySelector('span');
+    countEl.textContent = parseInt(countEl.textContent) + (isActive ? 1 : -1);
+  }
+
+  function replyComment(btn) {
+    const input = document.getElementById('comment-input');
+    const name = btn.closest('.comment-item').querySelector('.comment-name').textContent;
+    input.value = `@${name} `;
+    input.focus();
+  }
+
+  /* ── ADD COMMENT ── */
+  const avatarColors = ['#2d5a3d','#8a3a2a','#2a3a8a','#6a2a6a','#3a5a8a','#7a5a2a','#5a4a2a'];
   let commentCount = 3;
 
   function addComment() {
     const input = document.getElementById('comment-input');
     const text = input.value.trim();
-    if (!text) return;
+    if (!text) {
+      input.style.borderColor = 'var(--accent)';
+      input.focus();
+      setTimeout(() => input.style.borderColor = '', 1000);
+      return;
+    }
 
     commentCount++;
     document.getElementById('comment-count').textContent = `(${commentCount})`;
 
     const color = avatarColors[commentCount % avatarColors.length];
-    const initials = 'VC';
 
     const item = document.createElement('div');
     item.className = 'comment-item';
-    item.style.opacity = '0';
-    item.style.transform = 'translateY(12px)';
-    item.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
     item.innerHTML = `
-      <div class="comment-avatar" style="background:${color}">${initials}</div>
-      <div>
+      <div class="comment-avatar" style="background:${color}">VC</div>
+      <div style="flex:1">
         <span class="comment-name">Você</span>
         <span class="comment-time">agora</span>
-        <p class="comment-text">${text.replace(/</g,'&lt;')}</p>
+        <p class="comment-text">${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
+        <div class="comment-actions">
+          <button class="comment-react" onclick="reactComment(this)">♥ <span>0</span></button>
+          <button class="comment-react" onclick="replyComment(this)">↩ Responder</button>
+        </div>
       </div>`;
 
+    document.getElementById('comments-list').appendChild(item);
+    input.value = '';
 
+    // scroll suavemente até o novo comentário
+    setTimeout(() => item.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+  }
 </script>
 </body>
 </html>
